@@ -11,6 +11,20 @@ the same, and added DLSS, the in-place memory path and the reflection fix. Sourc
 
 How it works, what I changed and where it came from: **[docs/VICIOUS-SCARLETT.md](docs/VICIOUS-SCARLETT.md)**.
 
+## Straight up: what to expect
+
+- **It's slow.** On my RTX 5060 Laptop (Ryzen 9 8940HX, 24 GB RAM) it runs about **8–16 fps** of real frames
+  (≈64 ms a frame in light scenes, ≈128 ms in heavy ones). Night scenes are heavier on the GPU, daytime on the CPU.
+  A friend's Ryzen 9850X3D + RTX 5080 gets about 20–26 fps. The goal is a stable 20+.
+- **It stutters at first.** Shader pipelines get compiled while you play until they're warm (menu **W** helps).
+- **Not everything works:** phone/radio/TV audio is silent, phone subtitles are garbled, some car paint is green,
+  reflections can be too white, ray tracing is off.
+- **This code is newer than what I last played.** Two changes are in here but not tested yet: per-thread
+  recorder caches (texture cache on by default) and a GPU copy-back limit (off unless set). Your numbers may
+  differ from mine; that's what the reports are for.
+- **DLSS (menu B) is new** and still being checked; if it looks wrong, use **A**.
+- It's an experiment, not a finished product. No support promises; issues with a report are welcome.
+
 ## Quick start (about 20 minutes the first time)
 
 **You need:** Windows 10/11 · an NVIDIA RTX card with a current driver · your own game dump · ~5 GB free disk.
