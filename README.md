@@ -38,6 +38,7 @@ Virtual memory*, custom size 40000–48000 MB, reboot). With less it still runs;
    | **A** | Play without DLSS |
    | **B** | Play with DLSS (Balanced) — needs step 4 |
    | **W** | Only warm shaders/pipelines (no game). Do this once first for less stutter; it resumes if stopped |
+   | **R** | Make a performance report of your last run (see below) |
    | **G** | Change the game path |
    | **Q** | Quit |
 
@@ -45,6 +46,20 @@ Virtual memory*, custom size 40000–48000 MB, reboot). With less it still runs;
 
 The first launches stutter while pipelines are made and the NVIDIA driver fills its cache; it gets smoother each run.
 Logs: `runs\3070-<date>.log`. Cache: `runs\cache` (safe to delete). Saves: `runs\data` (keep).
+
+## Testing: send me your performance numbers
+
+I'm collecting numbers from different PCs. Please:
+
+1. Warm once (menu **W**), then play **10+ minutes** with **A** (and, if you can, another run with **B** for DLSS).
+   Walk, drive, go indoors and outdoors, day and night.
+2. Close the game, then pick **R** in the menu. It reads your newest log and makes a short report:
+   your CPU, GPU, driver, RAM + page file, DLSS on/off, and the frame time in groups of draws per frame
+   (only smooth "warm" frames count, so different PCs compare fairly).
+3. The report is copied to your clipboard and saved as `runs\report-<date>.txt`. Paste it in an
+   [issue](https://github.com/BvtterFvcker/VIcious-Scarlett/issues) with where you were and anything that looked wrong.
+
+The report holds no personal info: only hardware names, Windows version and frame times.
 
 ## For AI assistants helping someone set this up
 

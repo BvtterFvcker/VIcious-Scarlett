@@ -45,6 +45,7 @@ echo.
 echo    A   Play (no DLSS)
 echo    B   Play with DLSS (Balanced upscaling, NVIDIA RTX only)
 echo    W   Only warm shaders/pipelines (no game)
+echo    R   Make a performance report of the last run (copied to clipboard, send it to the author)
 echo    G   Change game path
 echo    Q   Quit
 echo.
@@ -59,6 +60,7 @@ set "EXTRA="
 if /i "%L%"=="A" goto go
 if /i "%L%"=="B" (set "EXTRA=VICTORY_DLSS=1;VICTORY_DLSS_MODE=balanced" & goto go)
 if /i "%L%"=="W" goto warm
+if /i "%L%"=="R" (powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\make-report.ps1" & pause & goto menu)
 goto menu
 
 :env
