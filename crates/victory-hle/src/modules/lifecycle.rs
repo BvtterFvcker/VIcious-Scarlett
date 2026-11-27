@@ -385,6 +385,9 @@ fn end() {
     // Compiled host pipelines kept for the next run.
     #[cfg(windows)]
     victory_gpu::pipeline::save_pipeline_cache();
+    // (VIcious 11-27) Title memory opened on the card let go first, or the driver keeps it committed.
+    #[cfg(windows)]
+    victory_gpu::release_before_exit();
     // SAFETY: ends this process, as the console ends a suspended title.
     unsafe { TerminateProcess(GetCurrentProcess(), 0) };
 }

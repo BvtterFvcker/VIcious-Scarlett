@@ -518,6 +518,15 @@ fn bury_lag() -> u64 {
 /// Drops what waited for submissions up to `finished` ([`bury_lag`]). The
 /// numbers come in order, but for threads that overtake each other: one of
 /// those is dropped a little later than it could be.
+/// (VIcious 11-27) Drops every object still waiting for the card, at once: only for the process's
+/// end, after the card had a moment to finish ([`crate::release_before_exit`]).
+pub(crate) fn drop_retired_now() -> usize {
+    let all: Vec<(u64, Retired)> = RETIRED.lock().unwrap_or_else(|e| e.into_inner()).drain(..).collect();
+    let n = all.len();
+    drop(all);
+    n
+}
+
 fn bury(finished: u64) {
     let finished = finished.saturating_sub(bury_lag());
     let done: Vec<(u64, Retired)> = {
@@ -6325,6 +6334,26 @@ impl Host {
             ));
         }
         submitting(3, runs.len());
+        // (VIcious 11-27, `VICTORY_BACK_LATE=1`, default off) The title is told the submission is
+        // done (read backs, then the bottom-of-pipe writes) before what shaders wrote is copied
+        // back, so its threads go on while the copy-back runs (~6 ms a frame, cloth among it).
+        // Risk: the title may read GPU-written memory a moment before it lands (cloth lagging).
+        static BACK_LATE: OnceLock<bool> = OnceLock::new();
+        let late = *BACK_LATE.get_or_init(|| {
+            let on = std::env::var_os("VICTORY_BACK_LATE").is_some_and(|v| v == "1");
+            if on {
+                tracing::info!("the title hears a submission is done before shader writes are copied back (VICTORY_BACK_LATE=1)");
+            }
+            on
+        });
+        if late {
+            for list in runs {
+                read_backs(list);
+                for &(at, what, bytes) in &list.deferred().writes {
+                    what.write(at as *mut u8, bytes);
+                }
+            }
+        }
         stage.next("submit: copying back");
         // What shaders wrote goes back before the bottom-of-pipe writes,
         // which tell the title the GPU is done; each range once per
@@ -6355,7 +6384,7 @@ impl Host {
             add(C::NothingBackUs, gpu.as_micros() as u64);
         }
         copy_back(0, copying.elapsed().as_micros() as u64);
-        for list in runs {
+        for list in runs.iter().filter(|_| !late) {
             // Read backs first: a value written at the bottom of the pipe
             // may be what tells the title that they are there.
             read_backs(list);
@@ -10907,6 +10936,7 @@ impl Host {
         match made {
             Ok(()) => Some((buffer?, data.cast())),
             Err(e) => {
+                crate::residency::allocation_error(&e);
                 tracing::warn!(error = %e, size, "no shared buffer");
                 None
             }

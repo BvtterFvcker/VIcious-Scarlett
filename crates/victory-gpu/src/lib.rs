@@ -135,6 +135,21 @@ pub fn frame_phase() -> u32 {
 }
 #[cfg(windows)]
 pub use inplace::{title_memory_freeing, title_memory_section, title_memory_section_gone, title_memory_view};
+
+/// (VIcious 11-27) Call right before the process ends: lets go of the title memory opened on the card
+/// (heaps over the page pool and placed windows) so the driver releases it; without this each run left
+/// ~6.8 GB of Windows' commit held until a restart. The card gets 150 ms to finish what it runs first.
+/// Once per process; safe to call from any exit path.
+pub fn release_before_exit() {
+    static ONCE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    if ONCE.swap(true, std::sync::atomic::Ordering::AcqRel) {
+        return;
+    }
+    let (placed, heaps) = inplace::release_before_exit();
+    std::thread::sleep(std::time::Duration::from_millis(150));
+    let retired = host::drop_retired_now();
+    tracing::info!(placed, heaps, retired, "released title memory opened on the card before exit");
+}
 #[cfg(windows)]
 pub use shadow::title_memory_write_combined;
 #[cfg(windows)]

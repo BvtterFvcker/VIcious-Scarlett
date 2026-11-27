@@ -237,6 +237,9 @@ pub extern "system" fn OutputDebugStringW(text: *const u16) {
 /// The CRT's `exit`, through which the title's entry point returns: logs
 /// the code and the caller, then exits on the host.
 pub extern "C" fn exit(code: i32) -> ! {
+    // (VIcious 11-27) Title memory opened on the card let go first, or the driver keeps it committed.
+    #[cfg(windows)]
+    victory_gpu::release_before_exit();
     tracing::warn!(code, from = %host::callers(), "title exits");
     host::exit(code)
 }
@@ -286,6 +289,8 @@ extern "system" fn report_unhandled(info: *const c_void) -> i32 {
 pub extern "system" fn TerminateProcess(process: *mut c_void, code: u32) -> i32 {
     if process as isize == -1 {
         tracing::warn!(code, from = %host::callers(), "title terminates the process");
+        #[cfg(windows)]
+        victory_gpu::release_before_exit();
     }
     host::terminate_process(process, code)
 }

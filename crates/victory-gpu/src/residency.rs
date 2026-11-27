@@ -20,9 +20,42 @@ static NEXT_COMMIT_SAMPLE: AtomicU64 = AtomicU64::new(0);
 static AVAILABLE_COMMIT: AtomicU64 = AtomicU64::new(u64::MAX);
 static RETRY_UPLOAD_AT: AtomicU64 = AtomicU64::new(0);
 
+/// (VIcious) Back off on every out-of-memory code, not only `E_OUTOFMEMORY`
+/// (`VICTORY_OOM_BACKOFF_ALL`, default 1; 0 = as before). Run 11-27 08:02: 38,079 refusals with
+/// "Not enough memory resources are available" in two minutes, then the driver crashed.
+fn backoff_all() -> bool {
+    static ON: OnceLock<bool> = OnceLock::new();
+    *ON.get_or_init(|| std::env::var("VICTORY_OOM_BACKOFF_ALL").map_or(true, |v| v.trim() != "0"))
+}
+
+static OOM_SEEN: AtomicU64 = AtomicU64::new(0);
+
 pub(crate) fn allocation_error(error: &windows::core::Error) {
-    if error.code() == windows::Win32::Foundation::E_OUTOFMEMORY {
+    let code = error.code();
+    // ERROR_NOT_ENOUGH_MEMORY and ERROR_OUTOFMEMORY as HRESULTs, besides E_OUTOFMEMORY.
+    let other_oom = matches!(code.0 as u32, 0x8007_0008 | 0x8007_000E | 0x8007_05AA | 0x8007_05AD);
+    if code == windows::Win32::Foundation::E_OUTOFMEMORY || (backoff_all() && other_oom) {
         RETRY_UPLOAD_AT.fetch_max(crate::host::coarse_ms().saturating_add(500), Ordering::Relaxed);
+    }
+    // Which memory ran out: said at the first refusal and every 2,000th after.
+    let n = OOM_SEEN.fetch_add(1, Ordering::Relaxed);
+    if n % 2000 == 0 {
+        let pc = memory_status();
+        let card = crate::host::host().and_then(|h| h.video_memory_groups());
+        tracing::warn!(
+            refusals = n + 1,
+            code = format_args!("{:#010x}", code.0 as u32),
+            "out of memory: PC commit free {} of {} MB, RAM free {} of {} MB; card own: budget {} MB, in use {} MB; \
+             PC shared with the card: budget {} MB, in use {} MB",
+            pc.map_or(0, |s| s.ullAvailPageFile / MIB),
+            pc.map_or(0, |s| s.ullTotalPageFile / MIB),
+            pc.map_or(0, |s| s.ullAvailPhys / MIB),
+            pc.map_or(0, |s| s.ullTotalPhys / MIB),
+            card.map_or(0, |c| c[0][0] >> 20),
+            card.map_or(0, |c| c[0][1] >> 20),
+            card.map_or(0, |c| c[1][0] >> 20),
+            card.map_or(0, |c| c[1][1] >> 20),
+        );
     }
 }
 
@@ -39,7 +72,53 @@ pub(crate) fn take_staging_deferred() -> bool {
 }
 
 pub(crate) fn upload_refused() -> bool {
-    crate::host::coarse_ms() < RETRY_UPLOAD_AT.load(Ordering::Relaxed)
+    let now = crate::host::coarse_ms();
+    now < RETRY_UPLOAD_AT.load(Ordering::Relaxed) || over_budget(now)
+}
+
+/// (VIcious 11-27, `VICTORY_BUDGET_GUARD=1`, default off) Back off before the card's memory runs out,
+/// not after: optional uploads (textures ahead, texture passes) wait while the PC memory shared with
+/// the card is over 90 % of its budget or the card's own over 97 %. Sampled at most every 250 ms
+/// (a driver memory query per submission cost another port ~5 % of its GPU thread). Run 08:02: the
+/// shared budget filled in a heavy cutscene, uploads failed 38,079 times and the driver crashed.
+fn budget_guard() -> bool {
+    static ON: OnceLock<bool> = OnceLock::new();
+    *ON.get_or_init(|| std::env::var_os("VICTORY_BUDGET_GUARD").is_some_and(|v| v == "1"))
+}
+
+static BUDGET_NEXT: AtomicU64 = AtomicU64::new(0);
+static OVER_BUDGET: AtomicBool = AtomicBool::new(false);
+static OVER_TIMES: AtomicU64 = AtomicU64::new(0);
+
+fn over_budget(now: u64) -> bool {
+    if !budget_guard() {
+        return false;
+    }
+    let next = BUDGET_NEXT.load(Ordering::Relaxed);
+    if now >= next
+        && BUDGET_NEXT
+            .compare_exchange(next, now.saturating_add(250), Ordering::Relaxed, Ordering::Relaxed)
+            .is_ok()
+        && let Some([own_budget, own_used, shared_budget, shared_used]) =
+            crate::host::host().and_then(|h| h.video_memory())
+    {
+        let over = shared_used.saturating_mul(10) > shared_budget.saturating_mul(9)
+            || own_used.saturating_mul(100) > own_budget.saturating_mul(97);
+        if OVER_BUDGET.swap(over, Ordering::Relaxed) != over {
+            let times = OVER_TIMES.fetch_add(u64::from(over), Ordering::Relaxed) + u64::from(over);
+            tracing::info!(
+                over,
+                times,
+                "card memory budget guard (VICTORY_BUDGET_GUARD): {} optional uploads; card own {} of {} MB, PC shared with the card {} of {} MB",
+                if over { "holding back" } else { "resuming" },
+                own_used / MIB,
+                own_budget / MIB,
+                shared_used / MIB,
+                shared_budget / MIB
+            );
+        }
+    }
+    OVER_BUDGET.load(Ordering::Relaxed)
 }
 
 fn sample_commit(now: u64) -> u64 {
@@ -73,7 +152,7 @@ fn has_growth_reserve(commit: u64, bake: bool) -> bool {
 /// still letting bindless textures and one-shot material bakes upload.
 pub(crate) fn admit_texture_pass(bake: bool) -> bool {
     let now = crate::host::coarse_ms();
-    if now < RETRY_UPLOAD_AT.load(Ordering::Relaxed) {
+    if now < RETRY_UPLOAD_AT.load(Ordering::Relaxed) || (!bake && over_budget(now)) {
         return false;
     }
     has_upload_reserve(sample_commit(now), bake)

@@ -119,7 +119,7 @@ $set = [ordered]@{
     VICTORY_STREAMLINE_DIR       = (Join-Path $root 'nvidia-sdk\Streamline\bin\x64')
     VICTORY_INPLACE              = '2'
     VICTORY_INPLACE_MB           = '1536'
-    VICTORY_POOL_COMMIT          = '1'
+    VICTORY_POOL_COMMIT          = '0'   # (11-27) off until the exit leak is fully fixed: each run left ~4-7 GB of Windows memory held until a restart
     VICTORY_TABLE_NAMED_ONLY     = '1'
     VICTORY_QUEUE_MARKS          = '1'
 }

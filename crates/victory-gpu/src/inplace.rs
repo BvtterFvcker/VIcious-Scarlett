@@ -220,6 +220,18 @@ fn place_in_section(section: usize, offset: u64, len: u64) -> Option<Placed> {
     Some(Placed { buffer, heap, gpu, bias: offset - at })
 }
 
+/// (VIcious 11-27) Before the process ends: every buffer placed over title memory and every heap
+/// opened on a committed section (`VICTORY_POOL_COMMIT`) is let go, so the driver gets the normal
+/// destroy for them. Left to the process's end, the driver kept the section: each run left ~6.8 GB of
+/// Windows' commit taken until a restart (11-27: 62 of 71 GB after a day of runs, then crashes).
+pub(crate) fn release_before_exit() -> (u64, usize) {
+    let placed = crate::shadow::in_place_let_go(0, 1 << 48);
+    let heaps = std::mem::take(&mut *SECTION_HEAPS.lock().unwrap_or_else(|e| e.into_inner()));
+    let n = heaps.len();
+    drop(heaps);
+    (placed, n)
+}
+
 /// Forgets the heap of a section the runtime let go.
 fn section_heap_gone(section: usize) {
     SECTION_HEAPS.lock().unwrap_or_else(|e| e.into_inner()).retain(|h| h.0 != section);
