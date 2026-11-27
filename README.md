@@ -31,8 +31,6 @@ How it works, what I changed and where it came from: **[docs/VICIOUS-SCARLETT.md
 ## Quick start (about 20 minutes the first time)
 
 **You need:** Windows 10/11 · an NVIDIA RTX card with a current driver · your own game dump · ~5 GB free disk.
-Best: RAM + page file of 48 GB or more (Windows: *Advanced system settings → Performance → Advanced →
-Virtual memory*, custom size 40000–48000 MB, reboot). With less it still runs; the launcher adapts.
 
 1. **Install the build tools (once):**
    - [Rust](https://rustup.rs) (default options).
@@ -100,11 +98,12 @@ Follow these facts exactly; don't guess other paths or flags.
 - **Settings** are environment variables `VICTORY_*`, set in the `$set` table of `scripts\play-3070-launcher.ps1`.
   DLSS: `VICTORY_DLSS=1`, `VICTORY_DLSS_MODE=quality|balanced|performance`; DLL folder: `VICTORY_STREAMLINE_DIR`
   (default `nvidia-sdk\Streamline\bin\x64`).
-- **Memory:** `VICTORY_POOL_COMMIT=1` needs RAM + page file ≥ ~48 GB; the .cmd sets it to 0 automatically below that.
+- **Memory:** a normal (system managed) page file is enough. Leave `VICTORY_POOL_COMMIT` at 0: with 1 the driver keeps
+  several GB of Windows memory after every run until a restart.
 - **Only one `victory.exe` may run**; the script refuses a second. Close it before rebuilding.
 - **Never** download or share game files; the user must supply their own dump.
 - **Troubleshooting:** "Release binary not found" → build step not done. "Game not found" → menu **G**.
-  Crash at start → raise the page file. Black/flickering world early on → pipelines still compiling (menu **W**).
+  Black/flickering world early on → pipelines still compiling (menu **W**).
   Read the newest `runs\3070-*.log` (UTF-16) for errors.
 
 ## Credits

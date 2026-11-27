@@ -28,9 +28,9 @@ Tested on an RTX 5060 Laptop 8 GB, Ryzen 9 8940HX, 24 GB RAM, Windows 11. Goal: 
 6k draws 99 → 75 ms, 8k draws 112 → 85 ms):
 - `VICTORY_ASK_ONCE_GUARDS=verify`, `VICTORY_CLEAN_STAMP=1`: one merged guard pass per submission; unchanged ranges
   answered by their stamp (15–20 % less time a frame in heavy scenes, picture unchanged).
-- `VICTORY_INPLACE=2`, `VICTORY_INPLACE_MB=1536`, `VICTORY_POOL_COMMIT=1`: the card reads title memory in place
-  (no copy / refresh / copy-back). Code: page pool committed (`SEC_COMMIT`) and placed in that section so D3D12 can
-  open it as a heap. Needs RAM + page file of about 48 GB.
+- `VICTORY_INPLACE=2`, `VICTORY_INPLACE_MB=1536`: the card reads title memory in place (no copy / refresh / copy-back).
+  `VICTORY_POOL_COMMIT=1` (page pool committed and opened whole as a heap) is off: the NVIDIA driver kept 4-7 GB of
+  Windows memory after every run until a restart.
 - `VICTORY_SAMPLERS_MADE=0`: ~1,950 static-sampler pipelines load from the pipeline library instead of compiling
   every launch (was the driving stutter).
 - `VICTORY_SKIP_PIPELINES`: skip list fixed so it also works in release builds; plus two water-light shaders that

@@ -89,13 +89,6 @@ set "VICTORY_CACHE_DIR=%RUN%\cache"
 set "VICTORY_DATA_DIR=%RUN%\data"
 set VICTORY_TELEMETRY=0
 set VICTORY_DISCORD=0
-rem The page pool is "committed" memory: it needs RAM + page file of about 48 GB. Below that it's left off (no crash).
-set "COMMITGB=0"
-for /f %%M in ('powershell -NoProfile -Command "[int]((Get-CimInstance Win32_OperatingSystem).TotalVirtualMemorySize/1MB)"') do set "COMMITGB=%%M"
-if %COMMITGB% GEQ 48 exit /b 0
-echo   RAM + page file = %COMMITGB% GB, under 48 GB: VICTORY_POOL_COMMIT off. See README for the page file tip.
-if defined EXTRA set "EXTRA=%EXTRA%;"
-set "EXTRA=%EXTRA%VICTORY_POOL_COMMIT=0"
 exit /b 0
 
 :go
@@ -107,14 +100,13 @@ cls
 echo.
 echo   =====================  FIRST START: READ THIS  =====================
 echo.
-echo   Nothing is broken. On the very first start your PC has no shader
-echo   pipelines yet, so they are made WHILE you play:
-echo     - the intro and first minutes freeze, go black or crawl (1-5 fps)
-echo     - this can last 10-20 minutes, let it run
+echo   Before the game opens, the launcher makes the ~4,000 shader
+echo   pipelines the game uses in play (the "N of M" lines). That takes a
+echo   few minutes on the first start, seconds after that. Let it finish.
 echo.
-echo   The game records what it needed. From the SECOND start on, the
-echo   launcher makes all of it before the game opens (the "N of M" lines),
-echo   and it plays smoothly. Send performance reports from run 2 or later.
+echo   The first minutes in game may still stutter a little while rarer
+echo   pipelines are made. Menu W makes ALL of them (1-2 hours) if you
+echo   want none left. Send performance reports from run 2 or later.
 echo.
 echo   ====================================================================
 echo.

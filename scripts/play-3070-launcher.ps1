@@ -113,7 +113,7 @@ $set = [ordered]@{
     # the driving stutter); no banding seen on the RTX 5060. Was 1.
     VICTORY_SAMPLERS_MADE        = '0'
     # (VIcious 11-27) the card reads title memory in place (no copy, refresh or copy-back for it), the page
-    # pool committed so it can be opened (needs the 40-48 GB page file). E run 11-27 10:35: 15-25 % less
+    # pool committed so it can be opened. E run 11-27 10:35: 15-25 % less
     # time a frame at equal draws (6k draws 99 -> 75 ms, 8k 112 -> 85 ms), 18 fps peaks in the house.
     # (VIcious 11-27) NVIDIA's DLSS files, this build's own copy (used when VICTORY_DLSS=1).
     VICTORY_STREAMLINE_DIR       = (Join-Path $root 'nvidia-sdk\Streamline\bin\x64')
@@ -146,20 +146,25 @@ foreach ($k in $set.Keys) { Set-Item -Path "Env:$k" -Value $set[$k] }
 if ($Prewarm) {
     Write-Host "Prewarming shaders and pipelines..." -ForegroundColor Cyan
     & $exe shaders $gameDir
-    & $exe warm
+    # (VIcious 11-27) The pipelines the game draws with in play (~4,000 of ~83,600, hashes only, from the
+    # maintainer's runs) are added to this PC's list, and only the listed ones are made: minutes, not hours,
+    # and faces/characters are drawn from the first start instead of after a few restarts.
+    # The full warm (all of them, 1-2 h) is menu W.
+    $seed = Join-Path $PSScriptRoot 'early-pipelines.txt'
+    if ($env:VICTORY_CACHE_DIR -and (Test-Path -LiteralPath $seed)) {
+        $pipeDir = Join-Path $env:VICTORY_CACHE_DIR 'pipelines'
+        New-Item -ItemType Directory -Force -Path $pipeDir | Out-Null
+        $mine = Join-Path $pipeDir 'early-pipelines.txt'
+        $have = @(if (Test-Path -LiteralPath $mine) { Get-Content -LiteralPath $mine })
+        $add = @(Get-Content -LiteralPath $seed | Where-Object { $_ -match '^[0-9a-f]{32}$' -and $have -notcontains $_ })
+        if ($add.Count -gt 0) {
+            Add-Content -LiteralPath $mine -Value $add -Encoding ascii
+            Write-Host "Added $($add.Count) known in-game pipelines to this PC's list." -ForegroundColor Cyan
+        }
+    }
+    & $exe warm --used
 }
 
-# (VIcious 11-27) Windows' commit (RAM + page file) left before the game starts. A run needs well over 16 GB of it;
-# runs that crash or are killed may leave some of theirs held until the PC restarts (11-27: 62 GB of 71 taken with no
-# game open), and the next run then dies with "out of memory" / "device removed".
-$os = Get-CimInstance Win32_OperatingSystem
-$freeGB = [math]::Round($os.FreeVirtualMemory / 1MB, 1)
-$totalGB = [math]::Round($os.TotalVirtualMemorySize / 1MB, 1)
-Write-Host "Windows memory (RAM + page file) free: $freeGB of $totalGB GB"
-if ($freeGB -lt 16) {
-    Write-Host "WARNING: under 16 GB free. The game will likely crash. Close other programs or RESTART the PC first." -ForegroundColor Yellow
-    Write-Host "(Other copies of the game running at the same time also use it up.)" -ForegroundColor Yellow
-}
 
 $runsDir = Join-Path $root 'runs'
 New-Item -ItemType Directory -Force -Path $runsDir | Out-Null
