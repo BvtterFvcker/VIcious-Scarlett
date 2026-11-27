@@ -149,6 +149,18 @@ if ($Prewarm) {
     & $exe warm
 }
 
+# (VIcious 11-27) Windows' commit (RAM + page file) left before the game starts. A run needs well over 16 GB of it;
+# runs that crash or are killed may leave some of theirs held until the PC restarts (11-27: 62 GB of 71 taken with no
+# game open), and the next run then dies with "out of memory" / "device removed".
+$os = Get-CimInstance Win32_OperatingSystem
+$freeGB = [math]::Round($os.FreeVirtualMemory / 1MB, 1)
+$totalGB = [math]::Round($os.TotalVirtualMemorySize / 1MB, 1)
+Write-Host "Windows memory (RAM + page file) free: $freeGB of $totalGB GB"
+if ($freeGB -lt 16) {
+    Write-Host "WARNING: under 16 GB free. The game will likely crash. Close other programs or RESTART the PC first." -ForegroundColor Yellow
+    Write-Host "(Other copies of the game running at the same time also use it up.)" -ForegroundColor Yellow
+}
+
 $runsDir = Join-Path $root 'runs'
 New-Item -ItemType Directory -Force -Path $runsDir | Out-Null
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
