@@ -14,13 +14,13 @@ from your own dump. Nothing from the game is in this repository.
 | Runner | `apps/victory` | The `victory.exe` commands: `run`, `shaders` (translate all shaders once), `warm` (make all recorded pipelines ahead of time). |
 
 The hard part is memory. The console has one memory shared by CPU and GPU, while a PC has RAM and VRAM apart.
-The emulator has to notice what the title writes, copy it to the card, and copy GPU results back. Most of our work
+The emulator has to notice what the title writes, copy it to the card, and copy GPU results back. Most of my work
 is about doing less of that per frame.
 
 Every setting is an environment variable `VICTORY_*`. The launcher script (`scripts/play-3070-launcher.ps1`) sets the
 measured defaults in its `$set` table; `-Extra "K=V;K=V"` adds more for one run.
 
-## What we changed (on top of Yaekai/victory-scarlett-3070, branch scarlett-fox)
+## What I changed (on top of Yaekai/victory-scarlett-3070, branch scarlett-fox)
 
 Tested on an RTX 5060 Laptop 8 GB, Ryzen 9 8940HX, 24 GB RAM, Windows 11. Goal: 20+ real fps (no frame generation).
 
