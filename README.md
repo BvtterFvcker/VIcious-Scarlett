@@ -62,6 +62,10 @@ Virtual memory*, custom size 40000–48000 MB, reboot). With less it still runs;
    When the game closes you're back at the menu. Nothing relaunches by itself.
 
 The first launches stutter while pipelines are made and the NVIDIA driver fills its cache; it gets smoother each run.
+
+**Set NVIDIA's shader cache to Unlimited** (do this once): NVIDIA Control Panel → Manage 3D Settings →
+**Shader Cache Size → Unlimited** (or 100 GB). The game has ~84,000 pipelines; at the default size the driver throws
+old ones out, and the next start compiles them all over again (minutes of stutter).
 Logs: `runs\3070-<date>.log`. Cache: `%LOCALAPPDATA%\VIcious-Scarlett\cache` (safe to delete).
 Saves: `%LOCALAPPDATA%\VIcious-Scarlett\data` (keep).
 
