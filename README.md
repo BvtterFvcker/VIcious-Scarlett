@@ -16,7 +16,10 @@ How it works, what I changed and where it came from: **[docs/VICIOUS-SCARLETT.md
 - **It's slow.** On my RTX 5060 Laptop (Ryzen 9 8940HX, 24 GB RAM) it runs about **8–16 fps** of real frames
   (≈64 ms a frame in light scenes, ≈128 ms in heavy ones). Night scenes are heavier on the GPU, daytime on the CPU.
   A friend's Ryzen 9850X3D + RTX 5080 gets about 20–26 fps. The goal is a stable 20+.
-- **It stutters at first.** Shader pipelines get compiled while you play until they're warm (menu **W** helps).
+- **The first start is rough, the second is the real one.** On a fresh install there are no shader pipelines yet,
+  so they're made while you play: the intro freezes, goes black or crawls at 1–5 fps for 10–20 minutes.
+  That's normal. The game records what it needed, and from the **second** start the launcher makes all of it
+  before the game opens. Judge it (and send reports) from run 2 on.
 - **Not everything works:** phone/radio/TV audio is silent, phone subtitles are garbled, some car paint is green,
   reflections can be too white, ray tracing is off.
 - **This code is newer than what I last played.** Two changes are in here but not tested yet: per-thread

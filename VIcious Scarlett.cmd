@@ -101,7 +101,25 @@ exit /b 0
 :go
 call :env
 set "VICTORY_PIPELINE_WAIT_MS="
-if not exist "%RUN%\cache\.first-run-done" set "VICTORY_PIPELINE_WAIT_MS=10000"
+if exist "%RUN%\cache\.first-run-done" goto notfirst
+set "VICTORY_PIPELINE_WAIT_MS=10000"
+cls
+echo.
+echo   =====================  FIRST START: READ THIS  =====================
+echo.
+echo   Nothing is broken. On the very first start your PC has no shader
+echo   pipelines yet, so they are made WHILE you play:
+echo     - the intro and first minutes freeze, go black or crawl (1-5 fps)
+echo     - this can last 10-20 minutes, let it run
+echo.
+echo   The game records what it needed. From the SECOND start on, the
+echo   launcher makes all of it before the game opens (the "N of M" lines),
+echo   and it plays smoothly. Send performance reports from run 2 or later.
+echo.
+echo   ====================================================================
+echo.
+pause
+:notfirst
 powershell -NoProfile -ExecutionPolicy Bypass -File "%HERE%scripts\play-3070-launcher.ps1" -Game "%GAME%" -Prewarm -Hooks -Extra "%EXTRA%"
 echo done> "%RUN%\cache\.first-run-done"
 echo.
