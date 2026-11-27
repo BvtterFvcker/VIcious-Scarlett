@@ -59,7 +59,8 @@ Virtual memory*, custom size 40000–48000 MB, reboot). With less it still runs;
    When the game closes you're back at the menu. Nothing relaunches by itself.
 
 The first launches stutter while pipelines are made and the NVIDIA driver fills its cache; it gets smoother each run.
-Logs: `runs\3070-<date>.log`. Cache: `runs\cache` (safe to delete). Saves: `runs\data` (keep).
+Logs: `runs\3070-<date>.log`. Cache: `%LOCALAPPDATA%\VIcious-Scarlett\cache` (safe to delete).
+Saves: `%LOCALAPPDATA%\VIcious-Scarlett\data` (keep).
 
 ## Testing: send me (BvtterFvcker) your performance numbers
 
@@ -86,7 +87,9 @@ Follow these facts exactly; don't guess other paths or flags.
   (Diagnostics build, optional: `cargo build --locked --profile diag -p victory --features diagnostics` → `target\diag\`.)
 - **Launch chain:** `VIcious Scarlett.cmd` → `scripts\play-3070-launcher.ps1 -Game <path to game_scarlett_master.exe>
   -Prewarm -Hooks [-Extra "NAME=VALUE;NAME=VALUE"]`. The .cmd stores the game path in `game-path.txt` and sets
-  `VICTORY_CACHE_DIR=runs\cache`, `VICTORY_DATA_DIR=runs\data`.
+  `VICTORY_CACHE_DIR=%LOCALAPPDATA%\VIcious-Scarlett\cache`, `VICTORY_DATA_DIR=%LOCALAPPDATA%\VIcious-Scarlett\data`.
+  Never put cache or saves inside the repo: the asset policy refuses game-derived data in the source tree
+  ("refusing to use … inside the VIctory source tree"). Logs stay in `runs\`.
 - **Settings** are environment variables `VICTORY_*`, set in the `$set` table of `scripts\play-3070-launcher.ps1`.
   DLSS: `VICTORY_DLSS=1`, `VICTORY_DLSS_MODE=quality|balanced|performance`; DLL folder: `VICTORY_STREAMLINE_DIR`
   (default `nvidia-sdk\Streamline\bin\x64`).

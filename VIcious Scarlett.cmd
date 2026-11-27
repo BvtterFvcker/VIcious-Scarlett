@@ -1,11 +1,12 @@
 @echo off
 rem VIcious Scarlett launcher. First run asks where game_scarlett_master.exe is and remembers it (game-path.txt).
-rem Cache and saves stay in this folder (runs\). Nothing starts by itself: after the game closes you're back at the menu.
+rem Cache and saves: %LOCALAPPDATA%\VIcious-Scarlett (the emulator refuses them inside its own source folder).
+rem Logs: runs\ here. Nothing starts by itself: after the game closes you're back at the menu.
 setlocal EnableExtensions
 cd /d "%~dp0"
 title VIcious Scarlett
 set "CFG=%~dp0game-path.txt"
-set "RUN=%~dp0runs"
+set "RUN=%LOCALAPPDATA%\VIcious-Scarlett"
 if exist "%~dp0target\release\victory.exe" goto built
 if exist "%~dp0victory.exe" goto built
 echo.
