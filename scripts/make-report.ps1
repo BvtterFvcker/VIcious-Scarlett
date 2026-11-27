@@ -53,6 +53,7 @@ foreach ($b in @(@(500, 2000), @(2000, 4000), @(4000, 6000), @(6000, 8000), @(80
 }
 if (-not $warm.Count) { $lines += '(no warm frames yet: play longer, or warm first with menu W)' }
 $lines += ''
+$lines += "For BvtterFvcker: paste in a new issue at github.com/BvtterFvcker/VIcious-Scarlett/issues"
 $lines += 'Where were you (day/night, city/indoors, driving)? Anything that looked wrong?'
 
 New-Item -ItemType Directory -Force -Path $runs | Out-Null
@@ -61,4 +62,6 @@ $lines | Set-Content -Path $out -Encoding utf8
 $lines | Set-Clipboard
 $lines | ForEach-Object { Write-Host $_ }
 Write-Host ''
-Write-Host "Saved to $out and copied to the clipboard: paste it to the author." -ForegroundColor Green
+Write-Host "Saved to $out and copied to the clipboard." -ForegroundColor Green
+Write-Host "Send it to BvtterFvcker: paste it in a new issue at https://github.com/BvtterFvcker/VIcious-Scarlett/issues/new" -ForegroundColor Green
+Start-Process "https://github.com/BvtterFvcker/VIcious-Scarlett/issues/new"

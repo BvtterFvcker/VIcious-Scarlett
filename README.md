@@ -61,7 +61,7 @@ Virtual memory*, custom size 40000–48000 MB, reboot). With less it still runs;
 The first launches stutter while pipelines are made and the NVIDIA driver fills its cache; it gets smoother each run.
 Logs: `runs\3070-<date>.log`. Cache: `runs\cache` (safe to delete). Saves: `runs\data` (keep).
 
-## Testing: send me your performance numbers
+## Testing: send me (BvtterFvcker) your performance numbers
 
 I'm collecting numbers from different PCs. Please:
 
@@ -71,7 +71,8 @@ I'm collecting numbers from different PCs. Please:
    your CPU, GPU, driver, RAM + page file, DLSS on/off, and the frame time in groups of draws per frame
    (only smooth "warm" frames count, so different PCs compare fairly).
 3. The report is copied to your clipboard and saved as `runs\report-<date>.txt`. Paste it in an
-   [issue](https://github.com/BvtterFvcker/VIcious-Scarlett/issues) with where you were and anything that looked wrong.
+   [issue on this repo](https://github.com/BvtterFvcker/VIcious-Scarlett/issues/new) with where you were and anything
+   that looked wrong. I get every one. Nothing is sent automatically; only what you paste.
 
 The report holds no personal info: only hardware names, Windows version and frame times.
 

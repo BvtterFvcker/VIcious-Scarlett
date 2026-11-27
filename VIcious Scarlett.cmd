@@ -45,7 +45,7 @@ echo.
 echo    A   Play (no DLSS)
 echo    B   Play with DLSS (Balanced upscaling, NVIDIA RTX only)
 echo    W   Only warm shaders/pipelines (no game)
-echo    R   Make a performance report of the last run (copied to clipboard, send it to the author)
+echo    R   Make a performance report of the last run (copied to clipboard: send it to BvtterFvcker)
 echo    G   Change game path
 echo    Q   Quit
 echo.
