@@ -6,6 +6,18 @@ cd /d "%~dp0"
 title VIcious Scarlett
 set "CFG=%~dp0game-path.txt"
 set "RUN=%~dp0runs"
+if exist "%~dp0target\release\victory.exe" goto built
+if exist "%~dp0victory.exe" goto built
+echo.
+echo   VIcious Scarlett isn't built yet. Do this once (needs Rust + Visual Studio C++ build tools, see README):
+echo.
+echo     1. Open PowerShell in this folder
+echo     2. Run:  cargo build --release --locked -p victory
+echo     3. When it says Finished, double-click this file again.
+echo.
+pause
+exit /b 1
+:built
 set "GAME="
 if exist "%CFG%" set /p GAME=<"%CFG%"
 if defined GAME if not exist "%GAME%" set "GAME="
